@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscrições | Painel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-link is-light is-medium">Gestão de inscrições</span>
+            <h2 class="title is-3 mt-3">Inscrições de atletas</h2>
+            <p class="subtitle is-6">Monitore o andamento das inscrições, filtre por evento ou status e exporte conforme necessário.</p>
+        </div>
+        <div class="column is-narrow">
+            <div class="has-text-right">
+                <p class="has-text-weight-semibold">Total geral</p>
+                <p class="title is-4">{{ page_obj.paginator.count }}</p>
+                <a class="button is-link is-light mt-2" href="{% url 'core:registrations-export' %}{% if querystring %}?{{ querystring }}{% endif %}">Exportar planilha</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="box card-shadow">
+    <style>
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .action-buttons .button.is-text {
+            justify-content: flex-start;
+            padding-left: 0;
+        }
+    </style>
+    <form method="get" class="mb-4">
+        <div class="columns is-multiline is-variable is-3">
+            <div class="column is-12-tablet is-4-desktop">
+                <label class="label">Buscar</label>
+                <div class="control">
+                    <input class="input is-medium" type="text" name="busca" value="{{ busca }}" placeholder="Atleta, academia ou professor">
+                </div>
+            </div>
+            <div class="column is-12-tablet is-3-desktop">
+                <label class="label">Evento</label>
+                <div class="select is-medium is-fullwidth">
+                    <select name="evento">
+                        <option value="">Todos os eventos</option>
+                        {% for ev in eventos %}
+                            <option value="{{ ev.slug }}" {% if evento_atual == ev.slug %}selected{% endif %}>{{ ev.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="column is-12-tablet is-2-desktop">
+                <label class="label">Status</label>
+                <div class="select is-medium is-fullwidth">
+                    <select name="status">
+                        <option value="">Todos</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status_atual == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="column is-12-tablet is-2-desktop">
+                <label class="label">Modalidade</label>
+                <div class="select is-medium is-fullwidth">
+                    <select name="modalidade">
+                        <option value="">Todas</option>
+                        {% for value, label in modalidade_choices %}
+                            <option value="{{ value }}" {% if modalidade_atual == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="column is-12-tablet is-1-desktop is-flex is-align-items-flex-end">
+                <div class="buttons">
+                    <button type="submit" class="button is-primary">Filtrar</button>
+                    <a href="{% url 'core:registrations' %}" class="button is-light">Limpar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="table-container">
+        <table class="table is-fullwidth is-hoverable">
+            <thead>
+                <tr>
+                    <th>Atleta</th>
+                    <th>Evento</th>
+                    <th>Academia / Professor</th>
+                    <th>Quantidade de lutas</th>
+                    <th>Status</th>
+                    <th>Registrado em</th>
+                    <th>Acoes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registration in registrations %}
+                    <tr>
+                        <td>
+                            <strong>{{ registration.athlete_name }}</strong><br>
+                            <span class="tag is-light">Peso: {{ registration.weight_kg }} kg</span>
+                        </td>
+                        <td>
+                            <strong>{{ registration.event.title }}</strong><br>
+                            <small>{{ registration.event.start_at|date:'d/m/Y H:i' }}</small>
+                        </td>
+                        <td>
+                            <strong>{{ registration.academy.name }}</strong><br>
+                            <small>{{ registration.coach.full_name }}</small>
+                        </td>
+                        <td>{{ registration.total_fights }} lutas</td>
+                        <td>
+                            {% if registration.status == 'confirmed' %}
+                                <span class="tag is-success is-light">{{ registration.get_status_display }}</span>
+                            {% elif registration.status == 'pending' %}
+                                <span class="tag is-warning is-light">{{ registration.get_status_display }}</span>
+                            {% else %}
+                                <span class="tag is-danger is-light">{{ registration.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ registration.created_at|date:'d/m/Y H:i' }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                {% if registration.status != 'confirmed' %}
+                                    <form method="post" action="{% url 'core:registration-payment' registration.pk %}" class="mb-1">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="resend">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="button is-link is-light is-small">Gerar novo link</button>
+                                    </form>
+                                    <form method="post" action="{% url 'core:registration-payment' registration.pk %}" onsubmit="return confirm('Tem certeza de que deseja confirmar manualmente o pagamento?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="manual-confirm">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="button is-success is-light is-small">Confirmar manualmente</button>
+                                    </form>
+                                {% else %}
+                                    <span class="tag is-success is-light">Pagamento confirmado</span>
+                                {% endif %}
+                                {% if registration.payment_id %}
+                                    {% with pagamento=registration.payment %}
+                                        {% if pagamento.invoice_url %}
+                                            <a class="button is-text is-small mt-1" href="{{ pagamento.invoice_url }}" target="_blank" rel="noopener">Abrir cobranca</a>
+                                        {% elif pagamento.bank_slip_url %}
+                                            <a class="button is-text is-small mt-1" href="{{ pagamento.bank_slip_url }}" target="_blank" rel="noopener">Abrir cobranca</a>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="has-text-centered has-text-grey">Nenhuma inscrição encontrada com os filtros selecionados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+            {% if page_obj.has_previous %}
+                <a class="pagination-previous" href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&status={{ status_atual }}&evento={{ evento_atual }}">Anterior</a>
+            {% else %}
+                <a class="pagination-previous" disabled>Anterior</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a class="pagination-next" href="?page={{ page_obj.next_page_number }}&busca={{ busca }}&status={{ status_atual }}&evento={{ evento_atual }}">Próxima</a>
+            {% else %}
+                <a class="pagination-next" disabled>Próxima</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

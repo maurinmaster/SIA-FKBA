@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title|default:'Novo evento' }} | FKBA{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-link is-light is-medium">Gestão de eventos</span>
+            <h2 class="title is-3 mt-3">{{ header_title|default:'Cadastrar um novo campeonato' }}</h2>
+            <p class="subtitle is-6">Organize os detalhes do torneio, defina as regras de inscrição e deixe tudo pronto para a divulgação.</p>
+        </div>
+        <div class="column is-narrow">
+            <div class="has-text-right">
+                <p class="has-text-weight-semibold">Status do formulário</p>
+                <p class="tag is-success is-light">Rascunho</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="columns">
+    <div class="column is-two-thirds">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="form-section">
+                <h3 class="section-title"><span class="emoji">🏟️</span> Informações principais</h3>
+                <div class="field">
+                    <label class="label" for="{{ form.title.id_for_label }}">{{ form.title.label }}{% if form.title.field.required %}<span class="badge-required">Obrigatório</span>{% endif %}</label>
+                    <div class="control">{{ form.title }}</div>
+                    {% for error in form.title.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="field">
+                    <label class="label" for="{{ form.location.id_for_label }}">{{ form.location.label }}{% if form.location.field.required %}<span class="badge-required">Obrigatório</span>{% endif %}</label>
+                    <div class="control">{{ form.location }}</div>
+                    {% for error in form.location.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="field">
+                    <label class="label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    <div class="control">{{ form.description }}</div>
+                    <p class="help">Apresente as categorias, premiações e outras informações que ajudem atletas e treinadores.</p>
+                    {% for error in form.description.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><span class="emoji">🗓️</span> Agenda e inscrições</h3>
+                <div class="columns is-multiline">
+                    <div class="column is-half">
+                        <div class="field">
+                            <label class="label" for="{{ form.start_at.id_for_label }}">{{ form.start_at.label }}{% if form.start_at.field.required %}<span class="badge-required">Obrigatório</span>{% endif %}</label>
+                            <div class="control">{{ form.start_at }}</div>
+                            <p class="help">Use o calendário para escolher data e horário finais.</p>
+                            {% for error in form.start_at.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="column is-half">
+                        <div class="field">
+                            <label class="label" for="{{ form.registration_deadline.id_for_label }}">{{ form.registration_deadline.label }}{% if form.registration_deadline.field.required %}<span class="badge-required">Obrigatório</span>{% endif %}</label>
+                            <div class="control">{{ form.registration_deadline }}</div>
+                            <p class="help">Defina um prazo para que o sistema bloqueie novas inscrições automaticamente.</p>
+                            {% for error in form.registration_deadline.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title"><span class="emoji">💳</span> Valores e publicação</h3>
+                <div class="columns is-multiline">
+                    <div class="column is-half">
+                        <div class="field">
+                            <label class="label" for="{{ form.registration_fee.id_for_label }}">{{ form.registration_fee.label }}</label>
+                            <div class="control">{{ form.registration_fee }}</div>
+                            <p class="help">Informe o valor cobrado por atleta (R$). Eventos gratuitos manterão o valor zerado.</p>
+                            {% for error in form.registration_fee.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="column is-half">
+                        <div class="field">
+                            <label class="label" for="{{ form.rules_document.id_for_label }}">{{ form.rules_document.label }}</label>
+                            <div class="file has-name is-boxed is-fullwidth">
+                                <label class="file-label">
+                                    {{ form.rules_document }}
+                                    <span class="file-cta">
+                                        <span class="file-icon">📎</span>
+                                        <span class="file-label">Selecionar arquivo</span>
+                                    </span>
+                                    <span class="file-name">Regulamento em PDF, até 10MB</span>
+                                </label>
+                            </div>
+                            {% for error in form.rules_document.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="column is-full">
+                        <div class="field">
+                            <label class="checkbox">
+                                {{ form.is_free }}
+                                <span class="ml-2">Evento gratuito (dispensa cobrança via gateway)</span>
+                            </label>
+                            {% for error in form.is_free.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="checkbox">
+                        {{ form.is_published }}
+                        <span class="ml-2">{{ form.is_published.label }}</span>
+                    </label>
+                    <p class="help">Marque para disponibilizar a página do evento imediatamente após salvar.</p>
+                    {% for error in form.is_published.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <div class="form-section form-actions">
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                    <div>
+                        <p class="has-text-grey">Campos marcados com <span class="badge-required">Obrigatório</span> precisam ser preenchidos.</p>
+                    </div>
+                    <div class="buttons">
+                        <a class="button is-light" href="{% url 'core:dashboard' %}">Cancelar</a>
+                        <button type="submit" class="button is-primary is-medium">Salvar evento</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="column is-one-third">
+        <div class="form-guide card-shadow">
+            <h4 class="title is-6">Checklist para publicar</h4>
+            <ul>
+                <li>Confirme se a data e o horário não conflitam com outros campeonatos.</li>
+                <li>Adicione observações importantes no campo de descrição para orientar atletas.</li>
+                <li>Suba o arquivo do regulamento com peso, categorias e formato das lutas.</li>
+                <li>Revise o valor da inscrição antes de liberar o evento para o público.</li>
+            </ul>
+            <hr>
+            <p class="is-size-7">Dica: salve o evento como rascunho para ajustar detalhes depois e só publique quando tudo estiver confirmado.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

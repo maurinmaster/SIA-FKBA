@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Remover métrica | Casamento{% endblock %}
+
+{% block content %}
+<div class="box card-shadow">
+    <h2 class="title is-4">Remover métrica</h2>
+    <p>Tem certeza de que deseja remover a métrica <strong>{{ object.name }}</strong>? Esta ação não pode ser desfeita.</p>
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <a class="button is-light" href="{% url 'core:matchmaking-metrics' %}">Cancelar</a>
+        <button type="submit" class="button is-danger">Remover</button>
+    </form>
+</div>
+{% endblock %}

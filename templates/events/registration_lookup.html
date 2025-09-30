@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Minha inscricao | FKBA{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <span class="tag is-uppercase">Autoatendimento</span>
+        <h2 class="title is-3">Acompanhe sua inscricao</h2>
+        <p class="subtitle is-6">Informe seu CPF e data de nascimento para verificar sua ficha e solicitar um novo link de pagamento quando necessario.</p>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="post" class="form-section">
+        {% csrf_token %}
+        <div class="columns is-variable is-3 is-multiline">
+            <div class="column is-4-tablet is-3-desktop">
+                <div class="field">
+                    <label class="label" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}</label>
+                    <div class="control">{{ form.cpf }}</div>
+                    {% for error in form.cpf.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div class="column is-4-tablet is-3-desktop">
+                <div class="field">
+                    <label class="label" for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}</label>
+                    <div class="control">{{ form.birth_date }}</div>
+                    {% for error in form.birth_date.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div class="column is-12-tablet is-flex is-align-items-flex-end">
+                <div class="buttons">
+                    <button type="submit" class="button is-primary">Consultar</button>
+                </div>
+            </div>
+        </div>
+        {{ form.non_field_errors }}
+    </form>
+</div>
+
+{% if registrations %}
+    <div class="event-grid mt-5">
+        {% for registration in registrations %}
+            <article class="event-card">
+                <span class="event-card__badge">{{ registration.event.title }}</span>
+                <h3 class="event-card__title">{{ registration.athlete_name }}</h3>
+                <div class="event-card__meta">
+                    <div>
+                        <strong>Status da inscricao</strong>
+                        {{ registration.get_status_display }}
+                    </div>
+                    <div>
+                        <strong>Categoria</strong>
+                        {{ registration.get_rule_set_display }} · {{ registration.weight_kg }} kg
+                    </div>
+                    {% with entry=registration.matchmaking_entries.all|first %}
+                        <div>
+                            <strong>Chave de lutas</strong>
+                            {% if entry %}
+                                {{ entry.bracket.title }}
+                            {% else %}
+                                Ainda nao vinculado a uma chave.
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+                    <div>
+                        <strong>Pagamento</strong>
+                        {% if registration.payment %}
+                            {{ registration.payment.get_status_display }}
+                            {% if registration.payment.invoice_url %}
+                                · <a href="{{ registration.payment.invoice_url }}" target="_blank" rel="noopener">Abrir link de pagamento</a>
+                            {% elif registration.payment.bank_slip_url %}
+                                · <a href="{{ registration.payment.bank_slip_url }}" target="_blank" rel="noopener">Abrir boleto</a>
+                            {% endif %}
+                        {% else %}
+                            Aguardando geracao
+                        {% endif %}
+                    </div>
+                </div>
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="cpf" value="{{ form.cpf.value|default:'' }}">
+                    <input type="hidden" name="birth_date" value="{{ form.birth_date.value|default:'' }}">
+                    <input type="hidden" name="registration_id" value="{{ registration.pk }}">
+                    <button type="submit" name="action" value="send-payment" class="event-card__cta">Solicitar link de pagamento</button>
+                </form>
+            </article>
+        {% endfor %}
+    </div>
+{% elif registrations is not none %}
+    <div class="notification is-info is-light mt-4">Nenhuma inscricao localizada para o CPF e data informados.</div>
+{% endif %}
+{% endblock %}

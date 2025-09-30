@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar chave | {{ bracket.event.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-warning is-light is-medium">Edicao manual</span>
+            <h2 class="title is-3 mt-3">{{ bracket.title }}</h2>
+            <p class="subtitle is-6 has-text-grey">Arraste os cartoes para reorganizar os confrontos. Ao salvar, a chave sera recalculada automaticamente.</p>
+        </div>
+        <div class="column is-narrow has-text-right">
+            <a class="button is-light" href="{% url 'core:matchmaking-bracket-detail' bracket.pk %}">Voltar</a>
+        </div>
+    </div>
+</div>
+
+<section class="notification is-link is-light">
+    <div class="columns is-variable is-2 is-vcentered">
+        <div class="column is-8">
+            <p class="title is-5 mb-1">Como funciona?</p>
+            <p class="is-size-7 has-text-grey-dark">Cada cartao representa um atleta. A ordem dos cartoes define os confrontos.</p>
+        </div>
+        <div class="column is-4">
+            <ul class="is-size-7 has-text-grey-dark">
+                <li>Use o mouse ou toque para arrastar os cartoes.</li>
+                <li>Os numeros atualizam conforme voce reorganiza.</li>
+                <li>Clique em “Salvar nova ordem” para confirmar.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<form method="post" class="box" id="reorder-form">
+    {% csrf_token %}
+    <input type="hidden" name="order" id="order-input" value="{{ order_initial }}">
+
+    <div class="draggable-container" id="entry-list">
+        {% for entry in entries %}
+            <div class="draggable-item" draggable="true" data-entry-id="{{ entry.pk }}">
+                <div class="draggable-slot" data-slot>{{ forloop.counter }}</div>
+                <div class="draggable-body">
+                    <p class="has-text-weight-semibold">{{ entry.registration.athlete_name }}</p>
+                    <p class="is-size-7 has-text-grey">{{ entry.registration.academy.name }}</p>
+                    <p class="is-size-7 has-text-grey-light">CPF: {{ entry.registration.cpf }}</p>
+                </div>
+                <span class="drag-handle">⋮⋮</span>
+            </div>
+        {% empty %}
+            <p class="has-text-grey">Nenhum atleta cadastrado nesta chave.</p>
+        {% endfor %}
+    </div>
+
+    <div class="notification is-warning is-light is-hidden" id="unsaved-alert">
+        Ha alteracoes nao salvas.
+    </div>
+
+    <div class="buttons is-right" id="actions-area">
+        <button type="submit" class="button is-primary is-medium" id="save-button" disabled>Salvar nova ordem</button>
+    </div>
+</form>
+
+<style>
+.draggable-container {
+    display: grid;
+    gap: 0.75rem;
+}
+.draggable-item {
+    display: grid;
+    grid-template-columns: 64px 1fr 32px;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--bulma-light, #f5f5f5);
+    box-shadow: 0 4px 16px rgba(31, 31, 31, 0.06);
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.draggable-item.dragging {
+    opacity: 0.75;
+    transform: scale(1.02);
+    box-shadow: 0 12px 24px rgba(31, 31, 31, 0.15);
+}
+.draggable-slot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bulma-primary, #485fc7);
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.drag-handle {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--bulma-grey-light, #b5b5b5);
+}
+.drag-placeholder {
+    height: 76px;
+    border: 2px dashed var(--bulma-link, #3273dc);
+    border-radius: 12px;
+    margin: 0.5rem 0;
+}
+@media screen and (max-width: 768px) {
+    .draggable-item {
+        grid-template-columns: 56px 1fr 24px;
+        padding: 0.75rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const list = document.getElementById('entry-list');
+    const orderInput = document.getElementById('order-input');
+    const saveButton = document.getElementById('save-button');
+    const alertBox = document.getElementById('unsaved-alert');
+    let draggedItem = null;
+    let originalOrder = orderInput.value;
+
+    const updateOrder = () => {
+        const ids = Array.from(list.querySelectorAll('.draggable-item')).map(item => item.dataset.entryId);
+        const newOrder = ids.join(',');
+        orderInput.value = newOrder;
+        Array.from(list.querySelectorAll('.draggable-slot')).forEach((slot, index) => {
+            slot.textContent = index + 1;
+        });
+        const changed = newOrder !== originalOrder;
+        if (saveButton) saveButton.disabled = !changed;
+        if (alertBox) alertBox.classList.toggle('is-hidden', !changed);
+    };
+
+    const createPlaceholder = () => {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'drag-placeholder';
+        return placeholder;
+    };
+
+    let placeholder = null;
+
+    const handleDragStart = (event) => {
+        draggedItem = event.currentTarget;
+        draggedItem.classList.add('dragging');
+        placeholder = createPlaceholder();
+        event.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        const target = event.target.closest('.draggable-item');
+        if (!target || target === draggedItem || !list.contains(target)) return;
+        const rect = target.getBoundingClientRect();
+        const isAfter = (event.clientY - rect.top) > (rect.height / 2);
+        if (isAfter) {
+            target.after(placeholder);
+        } else {
+            target.before(placeholder);
+        }
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        if (placeholder && draggedItem) {
+            placeholder.replaceWith(draggedItem);
+            updateOrder();
+        }
+    };
+
+    const handleDragEnd = () => {
+        if (draggedItem) draggedItem.classList.remove('dragging');
+        if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+        draggedItem = null;
+        placeholder = null;
+    };
+
+    if (list) {
+        list.addEventListener('dragover', handleDragOver);
+        list.addEventListener('drop', handleDrop);
+        list.addEventListener('dragend', handleDragEnd);
+        list.querySelectorAll('.draggable-item').forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+        });
+    }
+});
+</script>
+{% endblock %}

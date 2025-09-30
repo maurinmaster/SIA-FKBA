@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Métricas de casamento | Painel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-link is-light is-medium">Casamento de lutas</span>
+            <h2 class="title is-3 mt-3">Métricas de casamento</h2>
+            <p class="subtitle is-6">Configure as estruturas padrão (idade, experiência e pesos) para o gerador automático.</p>
+        </div>
+        <div class="column is-narrow">
+            <a class="button is-primary is-medium" href="{% url 'core:matchmaking-metric-create' %}">Nova métrica</a>
+        </div>
+    </div>
+</div>
+
+<div class="box card-shadow">
+    <form method="get" class="mb-4">
+        <div class="field has-addons">
+            <div class="control is-expanded">
+                <input class="input is-medium" type="text" name="busca" value="{{ busca }}" placeholder="Buscar por nome da métrica">
+            </div>
+            <div class="control">
+                <button type="submit" class="button is-medium is-link">Buscar</button>
+            </div>
+            {% if busca %}
+                <div class="control">
+                    <a href="{% url 'core:matchmaking-metrics' %}" class="button is-medium is-light">Limpar</a>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <div class="table-container">
+        <table class="table is-fullwidth is-hoverable">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Faixas de idade</th>
+                    <th>Níveis de experiência</th>
+                    <th>Categorias de peso</th>
+                    <th>Máx. lutas</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for metric in metrics %}
+                    <tr>
+                        <td>
+                            <strong>{{ metric.name }}</strong><br>
+                            <small>Atualizada em {{ metric.updated_at|date:'d/m/Y H:i' }}</small>
+                        </td>
+                        <td><span class="tag is-info is-light">{{ metric.get_age_metrics|length }} faixas</span></td>
+                        <td><span class="tag is-warning is-light">{{ metric.get_experience_metrics|length }} níveis</span></td>
+                        <td><span class="tag is-success is-light">{{ metric.get_weight_categories|length }} categorias</span></td>
+                        <td>{{ metric.max_fights_per_athlete }}</td>
+                        <td class="has-text-right">
+                            <div class="buttons are-small is-right">
+                                <a class="button is-link is-light" href="{% url 'core:matchmaking-metric-edit' metric.pk %}">Editar</a>
+                                <a class="button is-danger is-light" href="{% url 'core:matchmaking-metric-delete' metric.pk %}">Remover</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="has-text-centered has-text-grey">Nenhuma métrica cadastrada.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+            {% if page_obj.has_previous %}
+                <a class="pagination-previous" href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}">Anterior</a>
+            {% else %}
+                <a class="pagination-previous" disabled>Anterior</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a class="pagination-next" href="?page={{ page_obj.next_page_number }}&busca={{ busca }}">Próxima</a>
+            {% else %}
+                <a class="pagination-next" disabled>Próxima</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

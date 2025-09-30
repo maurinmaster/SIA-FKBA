@@ -1,0 +1,94 @@
+<div class="box athlete-card" data-form-index="{{ form.prefix }}">
+    <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+        <h4 class="title is-5 mb-0">Atleta {{ index }}</h4>
+        <button type="button" class="button is-text is-small remove-athlete" data-action="remove">
+            <span class="icon"><i class="fas fa-times"></i></span>
+            <span>Remover</span>
+        </button>
+    </div>
+    {% if form.non_field_errors %}
+        <div class="notification is-danger is-light">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+    {% endif %}
+    {% for hidden_field in form.hidden_fields %}
+        {{ hidden_field }}
+    {% endfor %}
+    {% if form.delete_field_widget %}
+        {{ form.delete_field_widget }}
+    {% endif %}
+    <div class="columns is-multiline">
+        <div class="column is-6">
+            <div class="field">
+                <label class="label" for="{{ form.athlete_name.id_for_label }}">{{ form.athlete_name.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control">{{ form.athlete_name }}</div>
+                {% for error in form.athlete_name.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-6">
+            <div class="field">
+                <label class="label" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control">{{ form.cpf }}</div>
+                {% for error in form.cpf.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-6">
+            <div class="field">
+                <label class="label" for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control">{{ form.birth_date }}</div>
+                {% for error in form.birth_date.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-6">
+            <div class="field">
+                <label class="label" for="{{ form.practice_time.id_for_label }}">{{ form.practice_time.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control select is-medium is-fullwidth">{{ form.practice_time }}</div>
+                {% for error in form.practice_time.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-4">
+            <div class="field">
+                <label class="label" for="{{ form.total_fights.id_for_label }}">{{ form.total_fights.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control">{{ form.total_fights }}</div>
+                {% for error in form.total_fights.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-4">
+            <div class="field">
+                <label class="label" for="{{ form.weight_kg.id_for_label }}">{{ form.weight_kg.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control">{{ form.weight_kg }}</div>
+                {% for error in form.weight_kg.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-4">
+            <div class="field">
+                <label class="label" for="{{ form.rule_set.id_for_label }}">{{ form.rule_set.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control select is-medium is-fullwidth">{{ form.rule_set }}</div>
+                {% for error in form.rule_set.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-6">
+            <div class="field">
+                <label class="label" for="{{ form.sex.id_for_label }}">{{ form.sex.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control select is-medium is-fullwidth">{{ form.sex }}</div>
+                {% for error in form.sex.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        <div class="column is-6">
+            <div class="field">
+                <label class="label" for="{{ form.whatsapp.id_for_label }}">{{ form.whatsapp.label }}<span class="badge-required">Obrigatorio</span></label>
+                <div class="control">{{ form.whatsapp }}</div>
+                {% for error in form.whatsapp.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        {% if 'notes' in form.fields %}
+        <div class="column is-full">
+            <div class="field">
+                <label class="label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                <div class="control">{{ form.notes }}</div>
+                {% for error in form.notes.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

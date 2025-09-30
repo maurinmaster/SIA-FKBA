@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Casamento | {{ event.title }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-info is-light is-medium">Casamento de lutas</span>
+            <h2 class="title is-3 mt-3">{{ event.title }}</h2>
+            <p class="subtitle is-6 has-text-grey">Local: {{ event.location }} &bull; Data: {{ event.start_at|date:'d/m/Y H:i' }}</p>
+        </div>
+        <div class="column is-narrow has-text-right">
+            <form method="post" action="{% url 'core:matchmaking-generate' event.slug %}" class="mb-2">
+                {% csrf_token %}
+                <input type="hidden" name="export_action" value="event">
+                <button type="submit" class="button is-link is-light">Exportar todas as chaves</button>
+            </form>
+            <a class="button is-light" href="{% url 'core:events' %}">
+                Voltar para eventos
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="columns is-variable is-4 mt-1">
+    <div class="column is-one-third-desktop is-half-tablet">
+        <div class="notification is-primary is-light has-text-centered">
+            <p class="heading">Confirmados</p>
+            <p class="title is-3 mb-0">{{ confirmed_count }}</p>
+            <p class="is-size-7 has-text-grey">Inscrições com pagamento aprovado</p>
+        </div>
+    </div>
+    <div class="column is-one-third-desktop is-half-tablet">
+        <div class="notification is-link is-light has-text-centered">
+            <p class="heading">Chaves geradas</p>
+            <p class="title is-3 mb-0">{{ brackets|length }}</p>
+            <p class="is-size-7 has-text-grey">Combinações alinhadas com a métrica</p>
+        </div>
+    </div>
+    <div class="column is-one-third-desktop is-half-tablet">
+        <div class="notification is-warning is-light has-text-centered">
+            <p class="heading">Sem chave</p>
+            <p class="title is-3 mb-0">{{ unassigned_count }}</p>
+            <p class="is-size-7 has-text-grey">Atletas aguardando casamento</p>
+        </div>
+    </div>
+</div>
+
+<div class="columns is-variable is-4">
+    <div class="column is-7-desktop">
+        <div class="box has-background-light">
+            <h3 class="title is-5">Gerar chaves automaticamente</h3>
+            <p class="is-size-6 mb-4 has-text-grey">Selecione a métrica desejada para classificar os atletas confirmados. O sistema considera regras, experiência, sexo, idade e peso.</p>
+            <form method="post" action="{% url 'core:matchmaking-generate' event.slug %}" class="columns is-multiline">
+                {% csrf_token %}
+                <div class="column is-7">
+                    <label class="label" for="metric-select">Métrica configurada</label>
+                    <div class="select is-medium is-fullwidth">
+                        <select id="metric-select" name="metric" required>
+                            <option value="" selected disabled>Selecione...</option>
+                            {% for metric in metrics %}
+                                <option value="{{ metric.pk }}">{{ metric.name }}</option>
+                            {% empty %}
+                                <option value="" disabled>Nenhuma métrica cadastrada</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="column is-5">
+                    <label class="label" for="replace-flag">Opções</label>
+                    <div class="field has-addons">
+                        <div class="control">
+                            <label class="button is-medium is-light">
+                                <input id="replace-flag" type="checkbox" name="replace" checked>
+                                <span class="ml-2">Substituir chaves existentes</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="column is-full has-text-right">
+                    <button type="submit" class="button is-primary is-medium">
+                        Gerar chaves
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="column is-5-desktop">
+        {% if unassigned_count %}
+            <div class="box has-background-warning-light">
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                    <h3 class="title is-6 mb-0">Atletas sem chave</h3>
+                    <span class="tag is-warning is-light">{{ unassigned_count }}</span>
+                </div>
+                <p class="is-size-7 mt-2 has-text-grey">Revise os dados ou ajuste a métrica para incluí-los nas próximas gerações.</p>
+                <div class="table-container mt-3">
+                    <table class="table is-bordered is-fullwidth is-striped is-narrow">
+                        <thead>
+                            <tr>
+                                <th>Atleta</th>
+                                <th>Academia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in unassigned_registrations %}
+                                <tr>
+                                    <td>{{ item.athlete_name }}</td>
+                                    <td>{{ item.academy.name }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="box has-background-success-light has-text-centered">
+                <span class="icon is-large has-text-success"><i class="fas fa-check-circle fa-2x"></i></span>
+                <p class="title is-6 mt-2">Todos os atletas confirmados estão em chaves.</p>
+                <p class="is-size-7 has-text-grey">Você pode gerar novas chaves a qualquer momento.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+    {% if confirmed_registrations %}
+        <div class="table-container">
+            <table class="table is-striped is-fullwidth is-hoverable is-narrow">
+                <thead>
+                    <tr>
+                        <th>Atleta</th>
+                        <th>Academia</th>
+                        <th>Professor</th>
+                        <th>Modalidade</th>
+                        <th>Peso (kg)</th>
+                        <th>Lutas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registration in confirmed_registrations %}
+                        <tr>
+                            <td>{{ registration.athlete_name }}</td>
+                            <td>{{ registration.academy.name }}</td>
+                            <td>{{ registration.coach.full_name }}</td>
+                            <td>{{ registration.get_rule_set_display }}</td>
+                            <td>{{ registration.weight_kg }}</td>
+                            <td>{{ registration.total_fights }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="has-text-grey has-text-centered">Nenhum atleta confirmado ate o momento.</p>
+    {% endif %}
+</div>
+
+<div class="box card-shadow">
+    <div class="is-flex is-justify-content-space-between is-align-items-center mb-4">
+        <div>
+            <h3 class="title is-5 mb-1">Chaves cadastradas</h3>
+            <p class="is-size-7 has-text-grey">Acompanhe as combinações sugeridas e ajuste manualmente sempre que necessário.</p>
+        </div>
+        <span class="tag is-link is-light is-medium">{{ brackets|length }} chaves</span>
+    </div>
+
+    {% if brackets %}
+        <div class="columns is-multiline is-variable is-3">
+            {% for bracket in brackets %}
+                <div class="column is-half-tablet is-one-third-desktop">
+                    <div class="box has-shadow bracket-card">
+                        <p class="tag is-rounded is-link is-light mb-2">{{ bracket.get_rule_set_display }}</p>
+                        <h4 class="title is-5 mb-2">{{ bracket.experience_label|title }} &bull; {{ bracket.get_sex_display }}</h4>
+                        <p class="is-size-7 has-text-grey mb-3">{{ bracket.age_group|title }} &mdash; Peso: {{ bracket.weight_label }}</p>
+                        <div class="tags mb-3">
+                            <span class="tag is-info is-light">{{ bracket.entry_total }} atletas</span>
+                            <span class="tag is-primary is-light">{{ bracket.match_total }} lutas</span>
+                            {% if bracket.is_manual %}
+                                <span class="tag is-warning is-light">Ajustes manuais</span>
+                            {% else %}
+                                <span class="tag is-success is-light">Automático</span>
+                            {% endif %}
+                        </div>
+                        <p class="is-size-7 has-text-grey mb-4">Gerada em {{ bracket.created_at|date:'d/m/Y H:i' }}</p>
+                        <div class="buttons">
+                            <a class="button is-link is-light is-fullwidth" href="{% url 'core:matchmaking-bracket-detail' bracket.pk %}">
+                                Ver detalhes
+                            </a>
+                            <a class="button is-light is-fullwidth" href="{% url 'core:matchmaking-bracket-edit' bracket.pk %}">
+                                <span class="icon"><i class="fas fa-edit"></i></span>
+                                <span>Editar posições</span>
+                            </a>
+                        </div>
+                        <form method="post" action="{% url 'core:matchmaking-bracket-export' bracket.pk %}" class="bracket-export-form mt-3">
+                            {% csrf_token %}
+                            <button type="submit" name="export_scope" value="all" class="button is-link is-fullwidth">Exportar lutas</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="has-text-centered has-text-grey">
+            <span class="icon is-large"><i class="fas fa-layer-group fa-2x"></i></span>
+            <p class="mt-2">Nenhuma chave gerada até o momento.</p>
+            <p class="is-size-7">Utilize o formulário acima para criar as primeiras combinações.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

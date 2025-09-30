@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chaves de Torneio — até 16 atletas</title>
+  <style>
+    :root{--gap:28px;--round-gap:40px;--box-h:56px;--muted:#9aa0a6;--card:#fff}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Arial}
+    body{margin:18px;background:#f6f8fa;color:#111}
+    .controls{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+    select,input[type=number],button{padding:8px 10px;border-radius:8px;border:1px solid #d7dbe0;background:white}
+    .wrap{display:flex;gap:var(--round-gap);align-items:start;overflow:auto;padding-bottom:30px}
+    .round{display:flex;flex-direction:column;gap:var(--gap);min-width:220px}
+    .round h3{margin:0 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+    .match{background:linear-gradient(180deg, #fff, #fbfdff);border:1px solid #e4e7eb;padding:8px;border-radius:10px;display:flex;flex-direction:column;justify-content:center;height:var(--box-h);position:relative}
+    .slot{height:calc(var(--box-h)/2 - 6px);display:flex;align-items:center;padding:0 10px;border-radius:6px}
+    .slot.top{border-bottom:1px dashed #eef2f5}
+    .slot span{flex:1;font-weight:600;color:#222}
+    .slot small{color:var(--muted);font-weight:500}
+
+    /* simple connectors */
+    .round:not(:last-child) .match:after{content:'';position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:20px;height:2px;background:#d7dbe0}
+
+    /* layout for bracket: for each next round we center matches by using margin */
+    .round.r2 .match{margin-top:calc(var(--box-h) * 0.5)}
+    .round.r3 .match{margin-top:calc(var(--box-h) * 1.5)}
+    .round.r4 .match{margin-top:calc(var(--box-h) * 3.5)}
+
+    footer{margin-top:18px;font-size:13px;color:var(--muted)}
+
+    @media print{
+      body{background:white}
+      .controls{display:none}
+      .wrap{gap:40px}
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <label for="size">Tamanho da chave:</label>
+    <select id="size">
+      <option value="2">2 atletas</option>
+      <option value="4">4 atletas</option>
+      <option value="8" selected>8 atletas</option>
+      <option value="16">16 atletas</option>
+    </select>
+    <label for="seed">Preencher automaticamente:</label>
+    <input id="seed" type="number" min="0" max="16" value="0" title="Coloque 0 para vazio, 1 para preencher com slots"/>
+    <button id="apply">Aplicar</button>
+    <button id="print">Imprimir / Salvar PDF</button>
+  </div>
+
+  <div id="bracket" class="wrap" aria-label="Chave do torneio">
+    <!-- rounds will be injected here -->
+  </div>
+
+  <footer>Modelo sem nomes — slots vazios. Use o botão "Imprimir" para gerar PDF. Designed for até 16 atletas.</footer>
+
+  <script>
+    const bracketEl = document.getElementById('bracket')
+    const sizeSelect = document.getElementById('size')
+    const applyBtn = document.getElementById('apply')
+    const seedInput = document.getElementById('seed')
+    const printBtn = document.getElementById('print')
+
+    // create structure for max 16 (4 rounds: 16 -> 8 -> 4 -> 2 -> winner)
+    function buildBracket(maxPlayers){
+      bracketEl.innerHTML = ''
+      // determine rounds needed (2 -> 1 round, 4 -> 2 rounds, 8 -> 3 rounds, 16 -> 4 rounds)
+      const rounds = Math.log2(maxPlayers)
+      let players = maxPlayers
+      for(let r=0;r<rounds;r++){
+        const roundCol = document.createElement('div')
+        roundCol.className = 'round r' + (r+1)
+        const header = document.createElement('h3')
+        header.textContent = r===rounds-1 ? 'Final' : (r===rounds-2 ? 'Semifinais' : 'Oitavas / Quartas')
+        roundCol.appendChild(header)
+        const matches = players/2
+        for(let m=0;m<matches;m++){
+          const match = document.createElement('div')
+          match.className = 'match'
+          const top = document.createElement('div')
+          top.className = 'slot top'
+          const topSpan = document.createElement('span')
+          topSpan.textContent = ''
+          const topSmall = document.createElement('small')
+          topSmall.textContent = `Slot ${r}-${m}-A` 
+          top.appendChild(topSpan)
+          top.appendChild(topSmall)
+
+          const bottom = document.createElement('div')
+          bottom.className = 'slot bottom'
+          const bottomSpan = document.createElement('span')
+          bottomSpan.textContent = ''
+          const bottomSmall = document.createElement('small')
+          bottomSmall.textContent = `Slot ${r}-${m}-B`
+          bottom.appendChild(bottomSpan)
+          bottom.appendChild(bottomSmall)
+
+          match.appendChild(top)
+          match.appendChild(bottom)
+          roundCol.appendChild(match)
+        }
+        bracketEl.appendChild(roundCol)
+        players = players/2
+      }
+    }
+
+    function applySettings(){
+      const size = parseInt(sizeSelect.value,10)
+      buildBracket(size)
+      const seed = Number(seedInput.value)
+      if(seed>0){
+        // fill first column (round 0) with Slot 1..N or leave blank if seed=0
+        const firstCol = bracketEl.querySelector('.round')
+        if(firstCol){
+          const slots = firstCol.querySelectorAll('.match')
+          // collect slot spans
+          let idx = 1
+          for(let i=0;i<slots.length;i++){
+            const top = slots[i].querySelector('.slot.top span')
+            const bottom = slots[i].querySelector('.slot.bottom span')
+            if(idx <= seed){ top.textContent = 'Atleta ' + idx++ } else { top.textContent = '' }
+            if(idx <= seed){ bottom.textContent = 'Atleta ' + idx++ } else { bottom.textContent = '' }
+          }
+        }
+      }
+    }
+
+    applyBtn.addEventListener('click', ()=>applySettings())
+    printBtn.addEventListener('click', ()=>window.print())
+
+    // initial
+    buildBracket(8)
+  </script>
+</body>
+</html>

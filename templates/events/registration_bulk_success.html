@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscricoes em lote | {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="box card-shadow">
+    <h2 class="title is-4">Inscricoes registradas com sucesso!</h2>
+    <p class="mb-2">Processamos {{ total_count }} {{ total_count|pluralize:'atleta,atletas' }} para o evento <strong>{{ event.title }}</strong>.</p>
+    <p class="has-text-grey">Valor total estimado: <strong>R$ {{ total_amount|floatformat:2 }}</strong></p>
+</div>
+
+{% if registrations %}
+<div class="box card-shadow">
+    <h3 class="title is-5">Pagamentos gerados</h3>
+    <div class="table-container">
+        <table class="table is-fullwidth is-striped is-hoverable">
+            <thead>
+                <tr>
+                    <th>Atleta</th>
+                    <th>CPF</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Pagamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registration in registrations %}
+                    {% with payment=registration.payment %}
+                    <tr>
+                        <td>
+                            <strong>{{ registration.athlete_name }}</strong><br>
+                            <span class="tag is-light is-small">{{ registration.get_rule_set_display }}</span>
+                        </td>
+                        <td>{{ registration.cpf|default:'-' }}</td>
+                        <td>R$ {{ event.registration_fee|floatformat:2 }}</td>
+                        <td>
+                            {% if payment %}
+                                <span class="tag {% if payment.is_paid %}is-success{% else %}is-warning{% endif %} is-light">{{ payment.get_status_display }}</span>
+                            {% else %}
+                                <span class="tag is-warning is-light">Aguardando geracao</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if payment %}
+                                {% if payment.invoice_url %}
+                                    <a class="button is-link is-light is-small" href="{{ payment.invoice_url }}" target="_blank" rel="noopener">Abrir cobranca</a>
+                                {% elif payment.bank_slip_url %}
+                                    <a class="button is-link is-light is-small" href="{{ payment.bank_slip_url }}" target="_blank" rel="noopener">Abrir cobranca</a>
+                                {% elif payment.pix_copy_and_paste %}
+                                    <button type="button" class="button is-text is-small" data-pix="{{ payment.pix_copy_and_paste }}">PIX copia e cola</button>
+                                {% else %}
+                                    <span class="has-text-grey is-size-7">Link indisponivel</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="has-text-grey is-size-7">Pagamento ainda nao disponivel</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+    <div class="notification is-warning is-light">Nao encontramos as inscricoes processadas nesta sessao.</div>
+{% endif %}
+
+<a class="button is-primary" href="{% url 'events:registration_bulk' event.slug %}">Cadastrar mais atletas</a>
+<a class="button is-light" href="{{ event.get_absolute_url }}">Voltar ao evento</a>
+
+{% endblock %}

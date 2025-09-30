@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel Administrativo | FKBA{% endblock %}
+
+{% block content %}
+<section class="mb-5">
+    <h2 class="title is-3">Painel Administrativo</h2>
+    <p class="subtitle is-5">Acompanhe seus eventos, inscrições e ações importantes em um só lugar.</p>
+</section>
+
+<section class="mb-6">
+    <h3 class="title is-5">Resumo rápido</h3>
+    <div class="columns is-multiline">
+        <div class="column is-12-tablet is-3-desktop">
+            <div class="box summary-card has-background-link-light">
+                <p class="heading">Eventos cadastrados</p>
+                <p class="title is-2">{{ resumo_eventos.total }}</p>
+                <p class="subtitle is-6">{{ resumo_eventos.publicados }} publicados</p>
+            </div>
+        </div>
+        <div class="column is-12-tablet is-3-desktop">
+            <div class="box summary-card has-background-success-light">
+                <p class="heading">Inscrições abertas</p>
+                <p class="title is-2">{{ resumo_eventos.inscricoes_abertas }}</p>
+                <p class="subtitle is-6">Eventos disponíveis para cadastro</p>
+            </div>
+        </div>
+        <div class="column is-12-tablet is-3-desktop">
+            <div class="box summary-card has-background-warning-light">
+                <p class="heading">Inscrições pendentes</p>
+                <p class="title is-2">{{ resumo_inscricoes.pendentes }}</p>
+                <p class="subtitle is-6">Aguardando confirmação</p>
+            </div>
+        </div>
+        <div class="column is-12-tablet is-3-desktop">
+            <div class="box summary-card has-background-info-light">
+                <p class="heading">Inscrições confirmadas</p>
+                <p class="title is-2">{{ resumo_inscricoes.confirmadas }}</p>
+                <p class="subtitle is-6">Prontas para casar lutas</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-6">
+    <div class="box">
+        <h3 class="title is-5">Ações rápidas</h3>
+        <div class="buttons">
+            <a class="button is-primary" href="{% url 'events:create' %}">Criar novo evento</a>
+            <a class="button is-link is-light" href="{% url 'core:events' %}">Gerenciar eventos</a>
+            <a class="button is-info is-light" href="{% url 'core:registrations' %}">Ver inscrições</a>
+            <a class="button is-success is-light" href="{% url 'core:matchmaking-metrics' %}">Metricas de casamento</a>
+            <a class="button is-dark is-light" href="{% url 'admin:core_academy_changelist' %}" target="_blank" rel="noopener">Academias</a>
+        </div>
+        <p class="has-text-grey-dark">Dica: utilize as ações rápidas para acessar diretamente os módulos administrativos quando precisar de ajustes rápidos.</p>
+    </div>
+</section>
+
+<section class="mb-6">
+    <div class="columns is-variable is-6">
+        <div class="column is-8">
+            <div class="box">
+                <div class="level mb-3">
+                    <div class="level-left"><h3 class="title is-5">Próximos eventos</h3></div>
+                    <div class="level-right"><span class="tag is-link is-light">Atualizado automaticamente</span></div>
+                </div>
+                <div class="table-container">
+                    <table class="table is-fullwidth is-striped is-hoverable">
+                        <thead>
+                            <tr>
+                                <th>Evento</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Inscrições</th>
+                                <th>Confirmadas</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in eventos_proximos %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ evento.title }}</strong><br>
+                                        <small>{{ evento.location }}</small>
+                                    </td>
+                                    <td>{{ evento.start_at|date:'d/m/Y H:i' }}</td>
+                                    <td>
+                                        {% if evento.is_published %}
+                                            <span class="tag is-success is-light">Publicado</span>
+                                        {% else %}
+                                            <span class="tag is-warning is-light">Rascunho</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ evento.total_inscricoes }}</td>
+                                    <td>{{ evento.inscricoes_confirmadas }}</td>
+                                    <td>
+                                        <div class="buttons are-small">
+                                            <a class="button is-link is-light" href="{% url 'events:detail' evento.slug %}" target="_blank" rel="noopener">Página pública</a>
+                                            <a class="button is-primary is-light" href="{% url 'events:edit' evento.slug %}" target="_blank" rel="noopener">Editar</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6">Nenhum evento cadastrado ainda. Que tal <a href="{% url 'events:create' %}">criar o primeiro?</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="column is-4">
+            <div class="box">
+                <h3 class="title is-5">Academias com mais inscrições</h3>
+                <ul>
+                    {% for academia in top_academias %}
+                        <li class="mb-2">
+                            <span class="has-text-weight-semibold">{{ academia.name }}</span><br>
+                            <small>{{ academia.city }}{% if academia.state %}/{{ academia.state }}{% endif %}</small>
+                            <div>
+                                <span class="tag is-info is-light mt-1">{{ academia.total_inscricoes }} atletas inscritos</span>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li>Aguardando as primeiras inscrições para mostrar este ranking.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-6">
+    <div class="box">
+        <h3 class="title is-5">Inscrições recentes</h3>
+        <div class="timeline is-centered">
+            <div class="timeline-header">
+                <span class="tag is-medium is-link is-light">Últimas movimentações</span>
+            </div>
+            {% for inscricao in inscricoes_recentes %}
+                <div class="timeline-item">
+                    <div class="timeline-marker is-link"></div>
+                    <div class="timeline-content">
+                        <p class="heading">{{ inscricao.created_at|date:'d/m/Y H:i' }}</p>
+                        <p>
+                            <strong>{{ inscricao.athlete_name }}</strong> - {{ inscricao.academy.name }}<br>
+                            <small>{{ inscricao.event.title }} · {{ inscricao.get_status_display }}</small>
+                        </p>
+                        <div class="tags mt-2">
+                            <span class="tag is-light">Peso: {{ inscricao.weight_kg }} kg</span>
+                            <span class="tag is-light">Lutas: {{ inscricao.total_fights }} lutas</span>
+                            <span class="tag is-light">Professor: {{ inscricao.coach.full_name }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>Ainda não há inscrições registradas.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="notification is-primary is-light">
+        <strong>Próximos passos:</strong> Publique eventos assim que finalizar as regras, monitore as inscrições pendentes e utilize o botão "Ver inscrições" para confirmar pagamentos rapidamente.
+    </div>
+</section>
+{% endblock %}

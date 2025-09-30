@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscrever multiplos atletas | {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-info is-light is-medium">Inscricao em lote</span>
+            <h2 class="title is-3 mt-3">{{ event.title }}</h2>
+            <p class="subtitle is-6 has-text-grey">Local: {{ event.location }} - Data: {{ event.start_at|date:'d/m/Y H:i' }} - Encerramento: {{ event.registration_deadline|date:'d/m/Y H:i' }}</p>
+        </div>
+        <div class="column is-narrow has-text-right">
+            <p class="has-text-weight-semibold">Valor por atleta</p>
+            <p class="title is-4">R$ {{ event.registration_fee }}</p>
+            <a class="button is-light mt-2" href="{{ event.get_absolute_url }}">Voltar para detalhes</a>
+        </div>
+    </div>
+</div>
+
+<form method="post" class="form-card" id="bulk-registration-form">
+    {% csrf_token %}
+    <div class="form-section">
+        <h3 class="section-title">Dados da academia</h3>
+        <p class="mb-4 has-text-grey is-size-6">Essas informacoes serao aplicadas a todos os atletas cadastrados neste envio.</p>
+        <div class="columns is-multiline">
+            <div class="column is-full">
+                <div class="field">
+                    <label class="label" for="{{ form.academy_name.id_for_label }}">{{ form.academy_name.label }}<span class="badge-required">Obrigatorio</span></label>
+                    <div class="control">{{ form.academy_name }}</div>
+                    {% for error in form.academy_name.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div class="column is-two-thirds">
+                <div class="field">
+                    <label class="label" for="{{ form.academy_city.id_for_label }}">{{ form.academy_city.label }}<span class="badge-required">Obrigatorio</span></label>
+                    <div class="control">{{ form.academy_city }}</div>
+                    {% for error in form.academy_city.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div class="column is-one-third">
+                <div class="field">
+                    <label class="label" for="{{ form.academy_state.id_for_label }}">{{ form.academy_state.label }}</label>
+                    <div class="control">{{ form.academy_state }}</div>
+                    {% for error in form.academy_state.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="{{ form.coach_name.id_for_label }}">{{ form.coach_name.label }}<span class="badge-required">Obrigatorio</span></label>
+                    <div class="control">{{ form.coach_name }}</div>
+                    {% for error in form.coach_name.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section has-background-light">
+        <div class="columns is-vcentered is-variable is-2">
+            <div class="column is-half">
+                <h3 class="title is-5 mb-1">Resumo financeiro</h3>
+                <p class="has-text-grey is-size-7">O valor total sera atualizado conforme o numero de atletas adicionados.</p>
+            </div>
+            <div class="column is-half has-text-right">
+                <p class="has-text-grey is-uppercase is-size-7">Total estimado</p>
+                <p class="title is-4" id="bulk-total-amount">R$ {{ event.registration_fee }}</p>
+                <p class="has-text-grey is-size-7" id="bulk-total-count">1 atleta cadastrado</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+            <h3 class="section-title mb-0">Atletas</h3>
+            <button type="button" class="button is-link is-light" id="add-athlete" data-base-fee="{{ event.registration_fee }}">Adicionar atleta</button>
+        </div>
+        {{ formset.management_form }}
+        {% for hidden in formset.hidden_fields %}{{ hidden }}{% endfor %}
+        {% if formset.non_form_errors %}
+            <div class="notification is-danger is-light">
+                {% for error in formset.non_form_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+        <div id="athlete-formset" data-prefix="{{ formset.prefix }}">
+            {% for form in formset.forms %}
+                {% include 'events/includes/_bulk_athlete_form.html' with form=form index=forloop.counter %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-section form-actions">
+        <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap">
+            <p class="has-text-grey">Campos marcados como <span class="badge-required">Obrigatorio</span> precisam ser preenchidos para todos os atletas.</p>
+            <div class="buttons mt-3">
+                <a class="button is-light" href="{{ event.get_absolute_url }}">Cancelar</a>
+                <button type="submit" class="button is-primary is-medium">Enviar inscricoes</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<template id="athlete-form-template">
+    {% include 'events/includes/_bulk_athlete_form.html' with form=formset.empty_form index='__index__' %}
+</template>
+
+<script>
+(function() {
+    const formsetContainer = document.getElementById('athlete-formset');
+    const addButton = document.getElementById('add-athlete');
+    const template = document.getElementById('athlete-form-template');
+    const totalAmountEl = document.getElementById('bulk-total-amount');
+    const totalCountEl = document.getElementById('bulk-total-count');
+    const academyFields = {
+        academy_name: document.getElementById('{{ form.academy_name.id_for_label }}'),
+        academy_city: document.getElementById('{{ form.academy_city.id_for_label }}'),
+        academy_state: document.getElementById('{{ form.academy_state.id_for_label }}'),
+        coach_name: document.getElementById('{{ form.coach_name.id_for_label }}'),
+    };
+    const prefix = formsetContainer.dataset.prefix;
+    const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+    const fee = parseFloat(addButton.dataset.baseFee || '0');
+
+    function formatAmount(value) {
+        return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function syncSharedFields(card) {
+        Object.entries(academyFields).forEach(([name, field]) => {
+            if (!field) return;
+            const input = card.querySelector(`[name$='-${name}']`);
+            if (input) {
+                if (field.tagName === 'SELECT') {
+                    input.value = field.value;
+                } else {
+                    input.value = field.value;
+                }
+            }
+        });
+    }
+
+    function syncAllSharedFields() {
+        const cards = formsetContainer.querySelectorAll('.athlete-card');
+        cards.forEach(syncSharedFields);
+    }
+
+    Object.values(academyFields).forEach(field => {
+        if (!field) return;
+        field.addEventListener('change', syncAllSharedFields);
+        field.addEventListener('input', syncAllSharedFields);
+    });
+
+    function updateSummary() {
+
+        const cards = Array.from(formsetContainer.querySelectorAll('.athlete-card'));
+
+        const activeCards = cards.filter(card => card.getAttribute('data-removed') !== 'true');
+
+        const count = activeCards.length;
+
+        const totalValue = (Number.isNaN(fee) ? 0 : fee) * count;
+
+        totalAmountEl.textContent = `R$ ${formatAmount(totalValue)}`;
+
+        totalCountEl.textContent = count === 1 ? '1 atleta cadastrado' : `${count} atletas cadastrados`;
+
+    }
+
+    function attachCardHandlers(card) {
+        const removeBtn = card.querySelector('[data-action="remove"]');
+        const deleteField = card.querySelector(`[name$='-DELETE']`);
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                if (deleteField) {
+                    deleteField.value = 'on';
+                }
+                card.setAttribute('data-removed', 'true');
+                card.classList.add('is-hidden');
+                updateSummary();
+            });
+        }
+    }
+
+    function addCardFromTemplate() {
+        const newIndex = parseInt(totalFormsInput.value, 10);
+        let html = template.innerHTML.trim();
+        html = html.replace(/__prefix__/g, newIndex);
+        html = html.replace(/__index__/g, newIndex + 1);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        const card = wrapper.firstElementChild;
+        formsetContainer.appendChild(card);
+        totalFormsInput.value = newIndex + 1;
+        syncSharedFields(card);
+        attachCardHandlers(card);
+        updateSummary();
+    }
+
+    addButton.addEventListener('click', addCardFromTemplate);
+
+    const initialCards = formsetContainer.querySelectorAll('.athlete-card');
+    initialCards.forEach(card => {
+        syncSharedFields(card);
+        attachCardHandlers(card);
+    });
+    updateSummary();
+})();
+</script>
+{% endblock %}

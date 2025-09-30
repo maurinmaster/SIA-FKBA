@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}Inscrever atleta | {{ event.title }}{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header">
+
+    <div class="columns is-vcentered">
+
+        <div class="column">
+
+            <span class="tag is-info is-light is-medium">Inscrição de atletas</span>
+
+            <h2 class="title is-3 mt-3">{{ event.title }}</h2>
+
+            <p class="subtitle is-6">Local: {{ event.location }} &middot; Data: {{ event.start_at|date:'d/m/Y H:i' }} &middot; Encerramento das inscrições: {{ event.registration_deadline|date:'d/m/Y H:i' }}</p>
+
+        </div>
+
+        <div class="column is-narrow">
+
+            <div class="has-text-right">
+
+                <p class="has-text-weight-semibold">Situação do evento</p>
+
+                {% if event.is_registration_open %}
+
+                    <span class="tag is-success is-light">Inscrições abertas</span>
+                    <a class="button is-link is-light mt-2" href="{% url 'events:registration_bulk' event.slug %}">Inscrever varios atletas</a>
+
+                {% else %}
+
+                    <span class="tag is-warning is-light">Inscrições encerradas</span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="columns">
+
+    <div class="column is-two-thirds">
+
+        <form method="post" enctype="multipart/form-data" class="form-card">
+
+            {% csrf_token %}
+
+            {% for hidden_field in form.hidden_fields %}
+
+                {{ hidden_field }}
+
+            {% endfor %}
+
+            {{ form.non_field_errors }}
+
+
+
+            <div class="form-section">
+
+                <h3 class="section-title"><span class="emoji" aria-hidden="true">&#127979;</span> Dados da academia</h3>
+
+                <div class="columns is-multiline">
+
+                    <div class="column is-full">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.academy_name.id_for_label }}">{{ form.academy_name.label }}<span class="badge-required">Obrigatório</span></label>
+
+                            <div class="control">{{ form.academy_name }}</div>
+
+                            {% for error in form.academy_name.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-two-thirds">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.academy_city.id_for_label }}">{{ form.academy_city.label }}<span class="badge-required">Obrigatório</span></label>
+
+                            <div class="control">{{ form.academy_city }}</div>
+
+                            {% for error in form.academy_city.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-one-third">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.academy_state.id_for_label }}">{{ form.academy_state.label }}</label>
+
+                            <div class="control">{{ form.academy_state }}</div>
+
+                            {% for error in form.academy_state.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-full">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.coach_name.id_for_label }}">{{ form.coach_name.label }}<span class="badge-required">Obrigatório</span></label>
+
+                            <div class="control">{{ form.coach_name }}</div>
+
+                            {% for error in form.coach_name.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-section">
+
+                <h3 class="section-title"><span class="emoji" aria-hidden="true">&#129354;</span> Dados do atleta</h3>
+
+                <div class="columns is-multiline">
+
+                    <div class="column is-full">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.athlete_name.id_for_label }}">{{ form.athlete_name.label }}<span class="badge-required">Obrigatório</span></label>
+
+                            <div class="control">{{ form.athlete_name }}</div>
+
+                            {% for error in form.athlete_name.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}<span class="badge-required">Obrigatório</span></label>
+
+                            <div class="control">{{ form.cpf }}</div>
+
+                            {% for error in form.cpf.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}<span class="badge-required">Obrigatório</span></label>
+
+                            <div class="control">{{ form.birth_date }}</div>
+
+                            {% for error in form.birth_date.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.practice_time.id_for_label }}">{{ form.practice_time.label }}</label>
+
+                            <div class="control">
+
+                                <div class="select is-medium is-fullwidth">
+
+                                    {{ form.practice_time }}
+
+                                </div>
+
+                            </div>
+
+                            <p class="help">Selecione o tempo de prática do atleta.</p>
+
+                            {% for error in form.practice_time.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.total_fights.id_for_label }}">{{ form.total_fights.label }}</label>
+
+                            <div class="control">{{ form.total_fights }}</div>
+
+                            {% if form.total_fights.help_text %}<p class="help">{{ form.total_fights.help_text }}</p>{% endif %}
+
+                            {% for error in form.total_fights.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.weight_kg.id_for_label }}">{{ form.weight_kg.label }}</label>
+
+                            <div class="control">{{ form.weight_kg }}</div>
+
+                            {% for error in form.weight_kg.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.rule_set.id_for_label }}">{{ form.rule_set.label }}</label>
+
+                            <div class="control">
+
+                                <div class="select is-medium is-fullwidth">
+
+                                    {{ form.rule_set }}
+
+                                </div>
+
+                            </div>
+
+                            {% for error in form.rule_set.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.sex.id_for_label }}">{{ form.sex.label }}</label>
+
+                            <div class="control">
+
+                                <div class="select is-medium is-fullwidth">
+
+                                    {{ form.sex }}
+
+                                </div>
+
+                            </div>
+
+                            {% for error in form.sex.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="column is-half">
+
+                        <div class="field">
+
+                            <label class="label" for="{{ form.whatsapp.id_for_label }}">{{ form.whatsapp.label }}</label>
+
+                            <div class="control">{{ form.whatsapp }}</div>
+
+                            {% for error in form.whatsapp.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-section form-actions">
+
+                <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap">
+
+                    <p class="has-text-grey">Campos com <span class="badge-required">Obrigatório</span> precisam ser preenchidos para concluir a inscrição.</p>
+
+                    <div class="buttons mt-3">
+
+                        <a class="button is-light" href="{{ event.get_absolute_url }}">Cancelar</a>
+
+                        <button type="submit" class="button is-primary is-medium">Enviar inscrição</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="column is-one-third">
+
+        <div class="form-guide card-shadow">
+
+            <h4 class="title is-6">Antes de enviar</h4>
+
+            <ul>
+
+                <li>Confira se o atleta está de acordo com a categoria de peso informada.</li>
+
+                <li>Informe a quantidade total de lutas do atleta para ajudar no casamento de lutas.</li>
+
+                <li>Informe um contato WhatsApp ativo para receber confirmações.</li>
+
+                <li>Garanta que o CPF esteja correto para evitar inscrições duplicadas.</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+

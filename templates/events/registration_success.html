@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscricao recebida{% endblock %}
+
+{% block content %}
+<div class="box">
+    <h2 class="title is-4">Inscricao recebida!</h2>
+    {% if registration %}
+        <p class="mb-3">{{ registration.athlete_name }} foi registrado(a) no evento <strong>{{ event.title }}</strong>.</p>
+        {% if event.is_free %}
+            <article class="message is-success">
+                <div class="message-body">
+                    Evento gratuito! Sua inscricao foi confirmada sem necessidade de pagamento.
+                </div>
+            </article>
+        {% elif payment %}
+            {% if payment.is_paid %}
+                <article class="message is-success">
+                    <div class="message-body">
+                        Pagamento confirmado! Veja mais detalhes no painel da organizacao.
+                    </div>
+                </article>
+            {% else %}
+                <article class="message is-warning">
+                    <div class="message-body">
+                        Para concluir a inscricao, finalize o pagamento ate <strong>{{ payment.due_date|date:'d/m/Y' }}</strong>.
+                    </div>
+                </article>
+                <div class="content">
+                    <p><strong>Valor:</strong> {{ payment.amount_display }}</p>
+                    {% if payment.invoice_url %}
+                        <p><a class="button is-link" href="{{ payment.invoice_url }}" target="_blank" rel="noopener">Abrir pagina de pagamento</a></p>
+                    {% endif %}
+                </div>
+                {% if payment.billing_type == 'PIX' %}
+                    <div class="columns is-desktop mt-4">
+                        <div class="column is-half">
+                            <h3 class="title is-5">Escaneie o QR Code</h3>
+                            {% if payment.pix_qr_code_image %}
+                                <img src="data:image/png;base64,{{ payment.pix_qr_code_image }}" alt="QR Code PIX" style="max-width: 280px;" />
+                            {% else %}
+                                <p>QR Code temporariamente indisponivel. Utilize o codigo copia e cola ao lado.</p>
+                            {% endif %}
+                        </div>
+                        <div class="column">
+                            <h3 class="title is-5">Codigo copia e cola</h3>
+                            <textarea class="textarea" rows="5" readonly onclick="this.select();">{{ payment.pix_copy_and_paste }}</textarea>
+                            <p class="help">Clique no campo para copiar o codigo e pague no aplicativo do seu banco.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% else %}
+            <p class="mt-4">Estamos processando o pagamento. Voce recebera um aviso assim que o link estiver disponivel.</p>
+        {% endif %}
+    {% else %}
+        <p>Entraremos em contato com mais informacoes sobre a participacao do atleta.</p>
+    {% endif %}
+</div>
+<a class="button is-link" href="{{ event.get_absolute_url }}">Voltar ao evento</a>
+{% endblock %}

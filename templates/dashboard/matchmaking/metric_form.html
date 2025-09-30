@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ view.object|default_if_none:'Nova métrica' }} | Casamento{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-info is-light is-medium">Casamento de lutas</span>
+            <h2 class="title is-3 mt-3">{{ view.object|default_if_none:'Nova métrica' }}</h2>
+            <p class="subtitle is-6">Informe as métricas no formato JSON para uso do gerador automático.</p>
+        </div>
+        <div class="column is-narrow">
+            <a class="button is-light" href="{% url 'core:matchmaking-metrics' %}">Voltar</a>
+        </div>
+    </div>
+</div>
+
+<form method="post" class="form-section">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="notification is-danger">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="columns is-multiline">
+        <div class="column is-6">
+            <div class="field">
+                {{ form.name.label_tag }}
+                <div class="control">{{ form.name }}</div>
+                {{ form.name.errors }}
+            </div>
+        </div>
+        <div class="column is-3">
+            <div class="field">
+                {{ form.max_fights_per_athlete.label_tag }}
+                <div class="control">{{ form.max_fights_per_athlete }}</div>
+                {{ form.max_fights_per_athlete.errors }}
+            </div>
+        </div>
+        <div class="column is-12">
+            <div class="field">
+                {{ form.notes.label_tag }}
+                <div class="control">{{ form.notes }}</div>
+                {{ form.notes.errors }}
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="columns">
+        <div class="column is-8">
+            <div class="field">
+                {{ form.age_metrics_json.label_tag }}
+                <div class="control">{{ form.age_metrics_json }}</div>
+                <p class="help">Exemplo: [{"nome": "infantil", "idade_minima": 9, "idade_maxima": 11}]</p>
+                {{ form.age_metrics_json.errors }}
+            </div>
+            <div class="field mt-4">
+                {{ form.experience_metrics_json.label_tag }}
+                <div class="control">{{ form.experience_metrics_json }}</div>
+                <p class="help">Exemplo: [{"nome": "iniciante", "maximo_lutas": 4}]</p>
+                {{ form.experience_metrics_json.errors }}
+            </div>
+            <div class="field mt-4">
+                {{ form.weight_categories_json.label_tag }}
+                <div class="control">{{ form.weight_categories_json }}</div>
+                {{ form.weight_categories_json.errors }}
+            </div>
+        </div>
+        <div class="column is-4">
+            <aside class="form-guide">
+                <p class="has-text-weight-semibold">Sugestão de JSON</p>
+                <pre class="mt-2">{
+  "nome": "K1 Light",
+  "sexo": "masculino",
+  "faixa_idade": "infantil",
+  "faixas_peso": ["28", "32", "37", "42", "47", "+47"]
+}</pre>
+                <p class="mt-2">Utilize <code>+valor</code> para pesos abertos. Campos obrigatórios: <code>nome</code>, <code>sexo</code>, <code>faixa_idade</code>, <code>faixas_peso</code>.</p>
+            </aside>
+        </div>
+    </div>
+
+    <div class="field is-grouped is-justify-content-flex-end">
+        <div class="control"><a class="button is-light" href="{% url 'core:matchmaking-metrics' %}">Cancelar</a></div>
+        <div class="control"><button type="submit" class="button is-primary">Salvar métrica</button></div>
+    </div>
+</form>
+{% endblock %}

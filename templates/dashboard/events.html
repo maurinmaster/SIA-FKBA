@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Eventos | Painel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="columns is-vcentered">
+        <div class="column">
+            <span class="tag is-primary is-light is-medium">Gestão de eventos</span>
+            <h2 class="title is-3 mt-3">Eventos cadastrados</h2>
+            <p class="subtitle is-6">Visualize, filtre e acesse rapidamente as ações administrativas de cada evento.</p>
+        </div>
+        <div class="column is-narrow">
+            <div class="has-text-right">
+                <p class="has-text-weight-semibold">Total</p>
+                <p class="title is-4">{{ page_obj.paginator.count }}</p>
+                <a class="button is-primary is-small mt-2" href="{% url 'events:create' %}">Novo evento</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="box card-shadow">
+    <form method="get" class="mb-4">
+        <div class="columns is-multiline is-variable is-3">
+            <div class="column is-5">
+                <label class="label">Buscar</label>
+                <div class="control">
+                    <input class="input is-medium" type="text" name="busca" value="{{ busca }}" placeholder="Nome ou local do evento">
+                </div>
+            </div>
+            <div class="column is-3">
+                <label class="label">Status</label>
+                <div class="select is-medium is-fullwidth">
+                    <select name="status">
+                        <option value="">Todos</option>
+                        <option value="publicados" {% if status_atual == 'publicados' %}selected{% endif %}>Publicados</option>
+                        <option value="rascunhos" {% if status_atual == 'rascunhos' %}selected{% endif %}>Rascunhos</option>
+                    </select>
+                </div>
+            </div>
+            <div class="column is-2 is-flex is-align-items-flex-end">
+                <div class="buttons">
+                    <button type="submit" class="button is-primary">Filtrar</button>
+                    <a href="{% url 'core:events' %}" class="button is-light">Limpar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="table-container">
+        <table class="table is-fullwidth is-hoverable">
+            <thead>
+                <tr>
+                    <th>Evento</th>
+                    <th>Datas</th>
+                    <th>Inscrições</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>
+                            <strong>{{ event.title }}</strong><br>
+                            <small>{{ event.location }}</small>
+                        </td>
+                        <td>
+                            <small>Evento:</small> {{ event.start_at|date:'d/m/Y H:i' }}<br>
+                            <small>Encerramento:</small> {{ event.registration_deadline|date:'d/m/Y H:i' }}
+                        </td>
+                        <td>
+                            <span class="tag is-link is-light">Total: {{ event.total_inscricoes }}</span>
+                            <span class="tag is-success is-light">Confirmadas: {{ event.inscricoes_confirmadas }}</span>
+                        </td>
+                        <td>
+                            {% if event.is_published %}
+                                <span class="tag is-success is-light">Publicado</span>
+                            {% else %}
+                                <span class="tag is-warning is-light">Rascunho</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="buttons are-small">
+                                <a class="button is-link is-light" href="{% url 'events:detail' event.slug %}" target="_blank" rel="noopener">Pagina publica</a>
+                                <a class="button is-info is-light" href="{% url 'core:matchmaking-event' event.slug %}">Casamento</a>
+                                <a class="button is-primary is-light" href="{% url 'events:edit' event.slug %}">Editar</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="has-text-centered has-text-grey">Nenhum evento encontrado.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+            {% if page_obj.has_previous %}
+                <a class="pagination-previous" href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&status={{ status_atual }}">Anterior</a>
+            {% else %}
+                <a class="pagination-previous" disabled>Anterior</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a class="pagination-next" href="?page={{ page_obj.next_page_number }}&busca={{ busca }}&status={{ status_atual }}">Próxima</a>
+            {% else %}
+                <a class="pagination-next" disabled>Próxima</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+

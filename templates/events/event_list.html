@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Eventos | FKBA{% endblock %}
+
+{% block content %}
+<section class="mb-5">
+    <h2 class="event-card__title">Calendario de lutas</h2>
+    <p class="hero-subtitle" style="max-width: 540px;">Escolha seu proximo combate, confira datas, prazos e valores oficiais registrados pela federacao.</p>
+</section>
+
+{% if events %}
+    <div class="event-grid">
+        {% for event in events %}
+            <article class="event-card">
+                <span class="event-card__badge">Evento oficial</span>
+                <h3 class="event-card__title">{{ event.title }}</h3>
+                <div class="event-card__meta">
+                    <div><strong>Local</strong>{{ event.location }}</div>
+                    <div><strong>Data</strong>{{ event.start_at|date:'d/m/Y H:i' }}</div>
+                    <div><strong>Inscricoes ate</strong>{{ event.registration_deadline|date:'d/m/Y H:i' }}</div>
+                    <div><strong>Valor</strong>R$ {{ event.registration_fee }}</div>
+                </div>
+                <a class="event-card__cta" href="{{ event.get_absolute_url }}">
+                    Ver detalhes
+                    &rarr;
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+    {% if is_paginated %}
+        <nav class="pagination is-centered mt-5" role="navigation" aria-label="pagination">
+            {% if page_obj.has_previous %}
+                <a class="pagination-previous" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            {% else %}
+                <a class="pagination-previous" disabled>Anterior</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a class="pagination-next" href="?page={{ page_obj.next_page_number }}">Proxima</a>
+            {% else %}
+                <a class="pagination-next" disabled>Proxima</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="event-detail-side">
+        <h4 class="title is-4 has-text-white">Nenhum evento publicado</h4>
+        <p class="has-text-grey-light">Assim que novas etapas forem divulgadas, elas aparecerao aqui primeiro.</p>
+    </div>
+{% endif %}
+{% endblock %}
