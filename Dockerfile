@@ -29,6 +29,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar todo o código-fonte
 COPY . .
 
+# Criar o diretório para o banco de dados SQLite
+RUN mkdir -p /usr/src/app/data
+
 # Coletar arquivos estáticos (usando o caminho definido em settings.py)
 # Isso criará a pasta 'staticfiles_prod' dentro do contêiner
 RUN python manage.py collectstatic --noinput

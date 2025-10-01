@@ -22,12 +22,13 @@ services:
     restart: always
     # Volumes para persistência e acesso do Caddy
     volumes:
-      # Pasta onde o Django coleta estáticos (acessada pelo Caddy)
-      - django_static:/usr/src/app/staticfiles_prod
-      # Pasta de mídia (acessada pelo Caddy)
-      - django_media:/usr/src/app/media_prod
-      # Banco de dados SQLite (para persistência, se não for migrar para Postgre)
-      - django_db:/usr/src/app/db.sqlite3 
+      # CORRIGIDO: Mapeia o volume nomeado (diretório) para o novo diretório 'data'
+      - django_db:/usr/src/app/data 
+      
+      # Persistência de arquivos estáticos
+      - django_static:/usr/src/app/staticfiles_prod 
+      # Persistência de arquivos de mídia (uploads)
+      - django_media:/usr/src/app/media_prod 
 
   # 2. Serviço de Proxy Reverso Caddy (HTTPS/Reverse Proxy)
   caddy:
@@ -50,7 +51,7 @@ services:
 
 # Volumes para persistência de dados
 volumes:
-  django_db: # Para persistir o SQLite
-  django_static: # Para os arquivos estáticos
-  django_media:  # Para os arquivos de mídia (uploads)
-  caddy_data:  # Para os certificados do Caddy
+  django_db:   # Volume nomeado para o banco de dados (agora é um diretório)
+  django_static: # Volume para os arquivos estáticos
+  django_media:  # Volume para os arquivos de mídia (uploads)
+  caddy_data:  # Volume para os certificados do Caddy
