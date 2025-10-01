@@ -43,7 +43,7 @@ RUN /usr/src/app/venv/bin/python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # CORREÇÃO TESTE: Usamos o caminho mais provável para o executável do venv
-CMD ["/usr/src/app/venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "fkba_platform.wsgi:application"]
+CMD ["/usr/src/app/venv/local/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "fkba_platform.wsgi:application"]
 
 # SE O ERRO PERSISTIR: Use esta alternativa (descomente e comente a linha acima)
 # CMD ["/usr/src/app/venv/local/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "fkba_platform.wsgi:application"]
