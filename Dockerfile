@@ -45,4 +45,4 @@ EXPOSE 8000
 # CMD ["/usr/src/app/venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "fkba_platform.wsgi:application"]
 
 # Alternativa 2 (Recomendada para ambientes virtuais): Usar o shell e o executável do venv
-CMD ["/bin/bash", "-c", "source venv/bin/activate && gunicorn --bind 0.0.0.0:8000 --workers 3 fkba_platform.wsgi:application"]
+CMD ["/usr/src/app/venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "fkba_platform.wsgi:application"]
