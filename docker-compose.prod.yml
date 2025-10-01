@@ -1,6 +1,4 @@
-# Arquivo: docker-compose.prod.yml (na raiz do projeto)
-
-version: '3.8'
+# Arquivo: docker-compose.prod.yml (Final Corrigido)
 
 services:
   # 1. Serviço da Aplicação Django (App)
@@ -22,12 +20,8 @@ services:
     restart: always
     # Volumes para persistência e acesso do Caddy
     volumes:
-      # CORRIGIDO: Mapeia o volume nomeado (diretório) para o novo diretório 'data'
       - django_db:/usr/src/app/data 
-      
-      # Persistência de arquivos estáticos
       - django_static:/usr/src/app/staticfiles_prod 
-      # Persistência de arquivos de mídia (uploads)
       - django_media:/usr/src/app/media_prod 
 
   # 2. Serviço de Proxy Reverso Caddy (HTTPS/Reverse Proxy)
@@ -41,7 +35,6 @@ services:
     volumes:
       # Mapear o Caddyfile de configuração
       - ./Caddyfile:/etc/caddy/Caddyfile
-      # Mapear os volumes estáticos e de mídia para que o Caddy possa servir
       - django_static:/usr/src/app/staticfiles_prod
       - django_media:/usr/src/app/media_prod
       # Volume para persistência dos certificados SSL (muito importante!)
@@ -51,7 +44,7 @@ services:
 
 # Volumes para persistência de dados
 volumes:
-  django_db:   # Volume nomeado para o banco de dados (agora é um diretório)
-  django_static: # Volume para os arquivos estáticos
-  django_media:  # Volume para os arquivos de mídia (uploads)
-  caddy_data:  # Volume para os certificados do Caddy
+  django_db:
+  django_static:
+  django_media:
+  caddy_data:
