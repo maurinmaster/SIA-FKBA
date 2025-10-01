@@ -29,6 +29,11 @@ COPY requirements.txt .
 # Usamos 'venv/bin/pip' para garantir que a instalação ocorra no local certo.
 RUN /usr/src/app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
+RUN ls -l /usr/src/app/venv/
+RUN ls -l /usr/src/app/venv/bin/
+# Se houver uma pasta local, liste-a também
+RUN ls -l /usr/src/app/venv/local/
+RUN ls -l /usr/src/app/venv/local/bin/
 # Copiar todo o código-fonte restante
 COPY . .
 
