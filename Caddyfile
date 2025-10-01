@@ -1,0 +1,35 @@
+# Arquivo: Caddyfile (na raiz do projeto)
+
+# Define o domínio. O Caddy trata a renovação e redireção HTTP->HTTPS
+fkba.prolutas.com {
+    
+    # Roteamento Reverso para a aplicação Django
+    # 'app' é o nome do serviço no docker-compose.prod.yml
+    reverse_proxy app:8000 {
+        # Configurar headers de proxy (essenciais para o Django funcionar corretamente com HTTPS)
+        header_up Host {host}
+        header_up X-Real-IP {remote_ip}
+        header_up X-Forwarded-For {remote_ip}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Servir arquivos estáticos (diretamente pelo Caddy é mais rápido que pelo Django)
+    # Caddy precisa de acesso à pasta /usr/src/app/staticfiles_prod do volume
+    handle_path /static/* {
+        root * /usr/src/app/staticfiles_prod
+        file_server
+    }
+    
+    # Servir arquivos de mídia
+    handle_path /media/* {
+        root * /usr/src/app/media_prod
+        file_server
+    }
+    
+    # Headers de segurança (opcional, mas recomendado)
+    header {
+        Strict-Transport-Security max-age=31536000;
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+    }
+}
