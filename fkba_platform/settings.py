@@ -119,11 +119,19 @@ if not DEBUG:
     # Configuração de arquivos estáticos e de mídia em produção
     STATIC_URL = '/static/'
     STATIC_ROOT = BASE_DIR / 'staticfiles_prod' # Novo diretório para arquivos estáticos
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',  # Diretório onde estão os arquivos estáticos do projeto
+    ]
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media_prod' # Novo diretório para arquivos de mídia
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configurações de redirecionamento após login/logout
+LOGIN_REDIRECT_URL = '/painel/'  # Redireciona para o dashboard após login
+LOGOUT_REDIRECT_URL = '/'  # Redireciona para a página principal após logout
+LOGIN_URL = '/admin/login/'  # URL para login quando não autenticado
 
 ASAAS_API_BASE = os.getenv('ASAAS_API_BASE', 'https://sandbox.asaas.com/api/v3')
 ASAAS_API_KEY = os.getenv('ASAAS_API_KEY', '')

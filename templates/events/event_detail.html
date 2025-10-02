@@ -19,11 +19,11 @@
                 {{ event.start_at|date:'d/m/Y H:i' }}
             </div>
             <div>
-                <strong>Encerramento das inscricoes</strong>
+                <strong>Encerramento das inscrições</strong>
                 {{ event.registration_deadline|date:'d/m/Y H:i' }}
             </div>
             <div>
-                <strong>Valor da inscricao</strong>
+                <strong>Valor da inscrição</strong>
                 R$ {{ event.registration_fee }}
             </div>
         </div>
@@ -33,7 +33,7 @@
             {% if event.is_registration_open %}
                 <a class="cta-primary" href="{% url 'events:registration' event.slug %}">Inscrever atleta</a>
             {% else %}
-                <div class="notification is-warning is-light">Inscricoes encerradas.</div>
+                <div class="notification is-warning is-light">Inscrições encerradas.</div>
             {% endif %}
             {% if event.rules_document %}
                 <a class="cta-secondary" href="{{ event.rules_document.url }}" target="_blank" rel="noopener">Baixar regulamento</a>
